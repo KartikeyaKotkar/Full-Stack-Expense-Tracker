@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <meta name="description"
+        content="A client-side expense tracker with IndexedDB storage and simulated JWT authentication.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Dexie.js -->
+    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app">
+        <section id="auth-section" class="view hidden">
+            <div class="glass-card auth-card">
+                <div class="brand">
+                    <i class="fas fa-wallet"></i>
+                    <h1>Expense Tracker</h1>
+                </div>
+                <p class="subtitle">Manage your finances</p>
+
+                <div id="login-box">
+                    <form id="login-form">
+                        <div class="input-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" placeholder="Enter username" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" placeholder="Enter password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <span>Login</span>
+                            <i class="fas fa-sign-in-alt"></i>
+                        </button>
+                    </form>
+                    <p class="toggle-text">Don't have an account? <a href="#" id="to-signup">Sign Up</a></p>
+                </div>
+
+                <div id="signup-box" class="hidden">
+                    <form id="signup-form">
+                        <div class="input-group">
+                            <label for="reg-username">Username</label>
+                            <input type="text" id="reg-username" placeholder="Choose a username" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="reg-password">Password</label>
+                            <input type="password" id="reg-password" placeholder="Choose a password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <span>Create Account</span>
+                            <i class="fas fa-user-plus"></i>
+                        </button>
+                    </form>
+                    <p class="toggle-text">Already have an account? <a href="#" id="to-login">Login</a></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="dashboard-section" class="view hidden">
+            <nav class="navbar">
+                <div class="brand">
+                    <i class="fas fa-wallet"></i>
+                    <span>Expense Tracker</span>
+                </div>
+                <div class="user-menu">
+                    <span id="user-display">Welcome, User</span>
+                    <button id="logout-btn" class="btn-icon">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </nav>
+
+            <main class="dashboard-content">
+                <div class="stats-grid">
+                    <div class="glass-card stat-item info">
+                        <div class="icon-box"><i class="fas fa-plus-circle"></i></div>
+                        <div class="stat-info">
+                            <h3>Add Expense</h3>
+                            <button id="show-form-btn" class="btn btn-secondary">Create New</button>
+                        </div>
+                    </div>
+                    <div class="glass-card stat-item total">
+                        <div class="icon-box"><i class="fas fa-money-bill-wave"></i></div>
+                        <div class="stat-info">
+                            <h3>Total Spent</h3>
+                            <p id="total-amount">₹0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-grid">
+                    <div class="glass-card chart-container">
+                        <h2>Spending Overview</h2>
+                        <div class="chart-wrapper">
+                            <canvas id="expenseChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-card table-container">
+                        <div class="table-header">
+                            <h2>Recent Expenses</h2>
+                        </div>
+                        <div class="table-scroll">
+                            <table id="expense-table">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Amount</th>
+                                        <th>Created At</th>
+                                        <th>Updated At</th>
+                                        <th>Comments</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expense-list">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </section>
+
+        <div id="expense-modal" class="modal hidden">
+            <div class="modal-content glass-card">
+                <div class="modal-header">
+                    <h2 id="modal-title">Add Expense</h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <form id="expense-form">
+                    <input type="hidden" id="expense-id">
+                    <div class="input-group">
+                        <label for="category">Category</label>
+                        <select id="category" required>
+                            <option value="">Select Category</option>
+                            <option value="Food">Food</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Leisure">Leisure</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Bills">Bills</option>
+                            <option value="Health">Health</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="amount">Amount (₹)</label>
+                        <input type="number" id="amount" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="comments">Comments</label>
+                        <textarea id="comments" rows="3" placeholder="Add a note..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <span id="submit-btn-text">Save Expense</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
