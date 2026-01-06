@@ -2,6 +2,8 @@
 
 A client-side single-page application (SPA) designed to manage personal finances. This project implements a complete CRUD workflow, secure simulated authentication, and data visualization, optimized for direct deployment on GitHub Pages.
 
+![Project Screenshot](Clipboard_01-07-2026_01.jpg)
+
 ## 
 - **Authentication System**: 
   - Simulated JWT authentication flow with Base64 encoding.
